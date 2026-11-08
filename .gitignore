@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.venv/
+.env
+.env.*
+docs/
+运行结果/
+实验数据/
+演示截图/
+组内交接与报告差异.md
+PPT第11页与实验对齐说明.md

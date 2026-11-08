@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DualPipe · 调度实验</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<header><div><span class="eyebrow">计算机系统结构 · 现场实验</span><h1>从参数到流水线</h1></div><div class="header-right">1F1B × 简化双向调度<span>DualPipe 思路的离散事件模型</span></div></header>
+<nav aria-label="实验组"><button data-case="baseline" class="selected">01　基础对照</button><button data-case="high_comm">02　通信耗时 ×10</button><button data-case="more_microbatches">03　微批数量 ×2</button><button id="summary-button">三组结果</button></nav>
+<main><aside>
+<h2 id="case-title">基础对照</h2><p id="case-description">固定 4 张 GPU、8 个微批，先观察同一工作量怎样排进时间轴。</p>
+<form id="parameters"><div class="fields">
+<label>流水线阶段数 P<input name="pp" type="number" min="2" max="8" step="1" value="4" required></label>
+<label>微批数量 M<input name="microbatches" type="number" min="2" max="32" step="2" value="8" required></label>
+<label>前向计算 F<input name="forward" type="number" min=".01" max="10" step="any" value="1" required></label>
+<label>输入梯度 B<input name="backward_input" type="number" min=".01" max="10" step="any" value="1" required></label>
+<label>权重梯度 W<input name="weight" type="number" min=".01" max="10" step="any" value="1" required></label>
+<label>通信耗时 C<input name="comm" type="number" min=".01" max="10" step="any" value=".1" required></label>
+</div><button type="submit" id="run" class="primary">▶ 运行本组实验</button><details open id="code-detail"><summary>本次运行的 Python 调用</summary><pre id="code"></pre></details>
+</form>
+<p id="status" role="status">设置参数，然后运行。图和数字均由本次仿真生成。</p>
+<details><summary id="source-button">查看实际调度代码</summary><pre id="source">正在读取…</pre></details>
+</aside>
+<section class="experiment">
+<div class="control-row"><div><h2>GPU 调度时间轴</h2><p id="mode-description">两种方法使用相同参数、工作量和资源约束。</p></div><label>资源模式<select id="mode"><option value="overlap">计算与通信可并行</option><option value="serial">计算与通信串行</option></select></label></div>
+<div class="legend"><span><i class="f"></i>前向 F</span><span><i class="b"></i>输入梯度 B</span><span><i class="w"></i>权重梯度 W</span><span><i class="c"></i>通信</span><span>虚线边框：从另一端进入的微批</span></div>
+<div id="empty"><strong>先运行，再看任务怎样流动。</strong><p>上下两张图共用时间尺度。计算与通信分行显示，空白表示该资源空闲。</p></div>
+<div id="timelines" hidden><div class="plot-heading"><h3>1F1B</h3><span id="active-1"></span></div><div id="plot-1"></div><div class="plot-heading"><h3>简化双向调度 <small>DualPipe 思路</small></h3><span id="active-2"></span></div><div id="plot-2"></div></div>
+<div class="playback"><button id="play" disabled>暂停</button><button id="previous-event" disabled>上一事件</button><button id="next-event" disabled>下一事件</button><button id="finish" disabled>看完整结果</button><input id="scrub" type="range" min="0" max="1000" value="0" aria-label="仿真时间" disabled><output id="clock">t = 0.00</output><select id="speed" aria-label="播放速度"><option value=".5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></div>
+<section id="event-inspector" hidden><div class="inspector-controls"><h3>追踪一次具体执行</h3><label>突出微批 <select id="microbatch-focus"><option value="all">全部</option></select></label></div><p>点击任务块，查看它的输入依赖；“下一事件”跳到真实的任务开始或结束时刻。</p><div class="inspector-columns"><div><h4>当前时刻发生了什么</h4><pre id="event-log"></pre></div><div><h4 id="task-title">选中任务</h4><pre id="task-detail"></pre><p id="task-reason"></p></div></div></section><div id="results" hidden></div>
+<div class="exports"><button id="save-json" disabled>导出事件 JSON</button><button id="save-svg" disabled>保存对照图 SVG</button><button id="save-png" disabled>保存截图 PNG</button></div>
+<p class="scope">模型时间 ≠ 程序运行秒数。并行模式假设独立的计算与通信资源；未模拟 SM、显存带宽争用及 MoE All-to-All，不代表官方 DualPipe 或真实 GPU 性能。</p>
+</section></main>
+<dialog id="summary"><div class="dialog-heading"><h2>三组参数对照</h2><button id="close-summary">关闭</button></div><p>只记录亲自运行过的预设组；自定义参数结果不混入这张表。</p><div id="summary-content"></div><button id="summary-csv">导出结果 CSV</button><p>耗时为抽象时间单位。加速比 = 1F1B 总完成时间 ÷ 简化双向总完成时间，小于 1 表示本组双向调度更慢。</p></dialog>
+<script src="/app.js"></script></body></html>
